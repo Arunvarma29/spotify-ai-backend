@@ -133,9 +133,10 @@ A code trace per endpoint: [docs/flow/](docs/flow/).
 
 Supporting endpoints the screens need: `POST /auth/signup`, `POST /auth/login`,
 `GET`/`PATCH /v1/consent` (pause and opt-out), `GET /metrics`, `GET /policy`,
-`GET /quality/runs`, `GET /subjects`, `GET /health`.
+`GET`/`POST /quality/runs` (read results / admin-only evaluation trigger),
+`GET /subjects`, `GET /health`.
 
-Errors use stable codes: `VALIDATION_FAILED`, `UNAUTHENTICATED`,
+Errors use stable codes: `VALIDATION_FAILED`, `UNAUTHENTICATED`, `FORBIDDEN`,
 `SUBJECT_MISMATCH`, `CONSENT_DENIED`, `RATE_LIMITED`, `NOT_FOUND`, `CONFLICT`,
 `SERVICE_UNAVAILABLE`, `UNSUPPORTED_SCHEMA_VERSION`.
 
@@ -209,6 +210,7 @@ All in `.env.example`, already matching what `docker compose` starts.
 | `KAFKA_USERNAME` / `KAFKA_PASSWORD` / `KAFKA_SASL_MECHANISM` | Only for a hosted Kafka; empty locally |
 | `RUN_WORKER_IN_API` | `true` on a free host: run the worker inside the API instead of as its own service |
 | `DEMO_PASSWORD` | Local testing only: gives `user_001` ... `user_005` this login password. Leave unset on a server |
+| `QUALITY_ADMIN_SUBJECTS` | Comma-separated user IDs allowed to trigger golden-set runs from Quality review; empty disables the button |
 
 ---
 
@@ -251,6 +253,12 @@ python -m pytest -q                    # 443 tests, real stores, model replaced
 python scripts/verify_endpoints.py     # 62 checks, each citing its abc.md line
 python scripts/run_golden_set.py       # 12 golden cases, feeds Quality review
 ```
+
+The Quality review screen also has an admin-only **Run golden set** button.
+Set `QUALITY_ADMIN_SUBJECTS` in Render to the approved account IDs (comma
+separated); the backend enforces this allowlist and rejects overlapping runs.
+Each run writes evaluation results and resets only the synthetic golden-set
+subjects, so use a staging database when possible.
 
 | Check | Result |
 |---|---|

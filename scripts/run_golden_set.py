@@ -24,7 +24,7 @@ by this script, so a run never touches the demo subjects.
 """
 
 import json
-import subprocess
+import os
 import sys
 import time
 import urllib.error
@@ -36,8 +36,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from memory import db, graph  # noqa: E402
+from memory.auth import mint_token  # noqa: E402
 
-BASE = "http://127.0.0.1:8000"
+BASE = os.environ.get("QUALITY_API_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
 GOLDEN_SET = ROOT / "data" / "golden-sets" / "pilot_golden_set.json"
 
 # How long to wait for an embedding to be written. POST /v1/memories stores it
@@ -48,14 +49,7 @@ INDEX_WAIT_SECONDS = 8
 
 # Mint a token for one subject, the way any caller would.
 def token_for(subject_id: str) -> str:
-    out = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "make_token.py"), subject_id],
-        cwd=str(ROOT), capture_output=True, text=True,
-    ).stdout
-    for word in out.split():
-        if word.startswith("ey"):
-            return word
-    raise SystemExit(f"could not mint a token for {subject_id}:\n{out}")
+    return mint_token(subject_id, "chat-surface")
 
 
 # One HTTP call, returning the status and the parsed body.
@@ -270,13 +264,13 @@ def score(case: dict, token: str) -> dict:
     }
 
 
-def main() -> int:
+def main(run_id: str | None = None) -> int:
     if not GOLDEN_SET.exists():
         print(f"no golden set at {GOLDEN_SET}")
         return 1
 
     cases = json.loads(GOLDEN_SET.read_text(encoding="utf-8"))["cases"]
-    run_id = f"run_{uuid.uuid4().hex[:12]}"
+    run_id = run_id or os.environ.get("GOLDEN_RUN_ID") or f"run_{uuid.uuid4().hex[:12]}"
 
     print(f"\nGolden set: {len(cases)} cases")
     print(f"Run id    : {run_id}")

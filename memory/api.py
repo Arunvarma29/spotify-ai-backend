@@ -7,6 +7,9 @@ Every endpoint except /health requires a bearer token (abc.md:162: "Every
 read and write must bind to authenticated subject and service identities").
 """
 
+import logging
+import os
+import threading
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -85,6 +88,43 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+logger = logging.getLogger(__name__)
+QUALITY_RUN_LOCK = threading.Lock()
+
+
+def quality_admin_subjects() -> set[str]:
+    """Subject IDs allowed to start the destructive synthetic quality run."""
+    return {
+        subject.strip()
+        for subject in os.environ.get("QUALITY_ADMIN_SUBJECTS", "").split(",")
+        if subject.strip()
+    }
+
+
+def _execute_quality_run(run_id: str) -> None:
+    """Run the golden set off-request while preventing overlapping runs."""
+    try:
+        from scripts import run_golden_set
+
+        run_golden_set.BASE = f"http://127.0.0.1:{os.environ.get('PORT', '8000')}"
+        result = run_golden_set.main(run_id)
+        if result:
+            logger.error("quality run %s finished with failures", run_id)
+    except Exception:
+        logger.exception("quality run %s failed unexpectedly", run_id)
+    finally:
+        QUALITY_RUN_LOCK.release()
+
+
+def _start_quality_run(run_id: str) -> None:
+    threading.Thread(
+        target=_execute_quality_run,
+        args=(run_id,),
+        name=f"golden-set-{run_id}",
+        daemon=True,
+    ).start()
+
 
 # The consoles run on a different origin from the API, so the browser
 # needs to be told this is allowed. abc.md:254 - the product surfaces are
@@ -906,7 +946,41 @@ def quality_runs(caller: Caller = Depends(authenticate)):
         "cases": db.golden_cases(runs[0]["run_id"]) if runs else [],
         # abc.md:344 - the memory-disabled arm the comparison needs.
         "experiment": db.experiment_status(),
+        "can_run": caller.subject_id in quality_admin_subjects(),
+        "is_running": QUALITY_RUN_LOCK.locked(),
     }
+
+
+@app.post("/quality/runs", status_code=202)
+def start_quality_run(caller: Caller = Depends(authenticate)):
+    """Start an admin-only golden-set run without holding the HTTP request open."""
+    if caller.subject_id not in quality_admin_subjects():
+        raise HTTPException(
+            status_code=403,
+            detail=errors.error(
+                errors.FORBIDDEN,
+                "this account is not allowed to start quality runs",
+            ),
+        )
+
+    if not QUALITY_RUN_LOCK.acquire(blocking=False):
+        raise HTTPException(
+            status_code=409,
+            detail=errors.error(errors.CONFLICT, "a quality run is already in progress"),
+        )
+
+    run_id = f"run_{uuid.uuid4().hex[:12]}"
+    try:
+        _start_quality_run(run_id)
+    except Exception as exc:
+        QUALITY_RUN_LOCK.release()
+        logger.exception("could not launch quality run %s", run_id)
+        raise HTTPException(
+            status_code=503,
+            detail=errors.error(errors.SERVICE_UNAVAILABLE, "could not start quality run"),
+        ) from exc
+
+    return {"run_id": run_id, "status": "running"}
 
 
 # --- Subjects --------------------------------------------------------------
