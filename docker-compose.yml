@@ -100,16 +100,16 @@ volumes:
   redpanda_data:
 
 
-- job_name: redpandaCloud-spotify-personalize-ai
-  static_configs:
-    - targets:
-        - dbor6gp35g7c73dbnku0.console.us-east-1.mpx.prd.cloud.redpanda.com
-  metrics_path: /api/cloud/prometheus/public_metrics
-  basic_auth:
-    username: prometheus
-    password: ••••••••••••
-  scheme: https
-  relabel_configs:
-    - target_label: redpanda_cloud_data_cluster_name
-      replacement: spotify-personalize-ai
+# - job_name: redpandaCloud-spotify-personalize-ai
+#   static_configs:
+#     - targets:
+#         - 
+#   metrics_path: /api/cloud/prometheus/public_metrics
+#   basic_auth:
+#     username: prometheus
+#     password: 
+#   scheme: https
+#   relabel_configs:
+#     - target_label: redpanda_cloud_data_cluster_name
+#       replacement: spotify-personalize-ai
 

@@ -16,10 +16,10 @@ valid time, and can be corrected or deleted.
 
 | | |
 |---|---|
-| **Live app** | https://spotifyfrontend11.netlify.app |
-| **Live API** | https://spotify-personalized-ai.onrender.com - `/docs`, `/health/stores` |
-| **Demo video** |https://www.loom.com/share/6507ef7e4ca4416b8781151a5a94a4e1|
-| **Frontend repository** | https://github.com/omsemwal/spotify-fronted |
+| **Live app** | https://spotifpersonalizeai.netlify.app/ |
+| **Live API** | https://spotify-ai-backend-wdtz.onrender.com - `/docs`, `/health/stores` |
+<!-- | **Demo video** |https://www.loom.com/share/6507ef7e4ca4416b8781151a5a94a4e1| -->
+| **Frontend repository** | https://github.com/Arunvarma29/spotify-ai-backend |
 
 ---
 
@@ -274,45 +274,45 @@ versions, and a running worker strengthening the same memory changes them.
 
 ## Screenshots
 
-Taken from the live site (https://spotifyfrontend11.netlify.app) with a fresh
+Taken from the live site (https://spotifpersonalizeai.netlify.app/) with a fresh
 demo account.
 
 **Login** - sign up or log in; the page wakes the free backend while you type.
 
-![Login](docs/screenshots/01-login.png)
+![Login](docs/screenshots/00_login.png)
 
 **Context preview** - one message, *"play something romantic"*: the two memories
 it learned earlier from *"I love Arijit Singh but no heavy metal"*, how they
 ranked, the exact text the AI receives, and matching songs.
 
-![Context preview](docs/screenshots/02-context-preview.png)
+![Context preview](docs/screenshots/01_context.png)
 
 **Memory explorer** - everything remembered about this user.
 
-![Memory explorer](docs/screenshots/03-memory-explorer.png)
+![Memory explorer](docs/screenshots/08_memories.png)
 
 **Correction & deletion** - pick a memory to correct, expire or delete.
 
-![Correction and deletion](docs/screenshots/04-correction-and-deletion.png)
+![Correction and deletion](docs/screenshots/03_corrections.png)
 
 **Overview** - health, latency, ingestion, fallbacks, deletions. The live
 latency is high because the free host sleeps and the cloud stores sit in other
 regions; locally p95 is about 70 ms.
 
-![Overview](docs/screenshots/05-overview.png)
+![Overview](docs/screenshots/04i_overview.png)
 
 **Schema & policy** - memory types with examples, retention, allowed fields.
 
-![Schema and policy](docs/screenshots/06-schema-and-policy.png)
+![Schema and policy](docs/screenshots/05_policy.png)
 
 **Quality review** - golden-set results (run against the local stores; empty
 on the live site until it is run there).
 
-![Quality review](docs/screenshots/07-quality-review.png)
+![Quality review](docs/screenshots/06_quality.png)
 
 **Audit trace** - why one answer used the memories it did, with no memory text.
 
-![Audit trace](docs/screenshots/08-audit-trace.png)
+![Audit trace](docs/screenshots/07_trace.png)
 
 ---
 

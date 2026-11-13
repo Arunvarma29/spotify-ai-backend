@@ -7,7 +7,7 @@ Clone it, run four commands, open two terminals.
 ## Setup — four commands, once
 
 ```bash
-git clone https://github.com/omsemwal/spotify-personalized-ai.git
+git clone https://github.com/Arunvarma29/spotify-ai-backend
 cd spotify-personalized-ai
 
 pip install -r requirements.txt
